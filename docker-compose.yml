@@ -1,46 +1,49 @@
-
 services:
   postgres:
     image: postgres:16.2
+    container_name: keycloak-postgres
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: mysecretpassword
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Named volume for PostgreSQL data
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432" # Optional: expose PostgreSQL port
+      - "5433:5432"
     networks:
       - keycloak_network
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.4.4
+    container_name: keycloak
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres
       DB_DATABASE: keycloak
       DB_USER: keycloak
       DB_PASSWORD: mysecretpassword
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: adminpassword
-      KC_HOSTNAME: localhost # Adjust as needed
-      KC_PROXY: edge # Or 'passthrough' depending on your setup
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: adminpassword
+      KC_HOSTNAME: localhost
+      KC_PROXY: edge
+      KC_THEME: unified-ticketing
     ports:
-      - "8080:8080" # Keycloak HTTP port
-      - "8443:8443" # Keycloak HTTPS port (if enabled)
-    command: start-dev # For development, use 'start' for production
+      - "8080:8080"
+      - "8443:8443"
+    command: start-dev
     depends_on:
       - postgres
+    volumes:
+      - type: bind
+        source: /home/susant/workalaya/Keycloak-test/Test/keycloak-theme/unified-ticketing
+        target: /opt/keycloak/themes/unified-ticketing
+        read_only: true
     networks:
       - keycloak_network
-    # Optional: Mount a volume for importing realms or custom configurations
-    # volumes:
-    #   - ./imports:/opt/jboss/keycloak/imports 
 
 volumes:
-  postgres_data: # Define the named volume for PostgreSQL
+  postgres_data:
     driver: local
-  # Optional: Define other named volumes if needed
 
 networks:
   keycloak_network:
